@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: employee-screening-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: USE_WHATSAPP_WEB
+        value: false
+      - key: USE_EMAIL
+        value: false
