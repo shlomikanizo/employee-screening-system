@@ -1,4 +1,4 @@
-import { DollarSign, Clock, Gift, FileText } from 'lucide-react';
+import { Coins, Clock, Gift, FileText } from 'lucide-react';
 import Button from '../shared/Button';
 import Card from '../shared/Card';
 
@@ -24,8 +24,8 @@ function Step3Terms({ formData, onAccept, onReject, onBack }) {
       {/* Salary */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-4 border-2 border-green-200">
         <div className="flex items-center gap-3 mb-2">
-          <div className="bg-green-500 rounded-full p-2">
-            <DollarSign className="w-6 h-6 text-white" />
+          <div className="bg-green-500 rounded-full p-2 flex items-center justify-center">
+            <span className="text-2xl font-bold text-white">₪</span>
           </div>
           <h3 className="text-2xl font-bold text-green-900">שכר</h3>
         </div>
