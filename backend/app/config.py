@@ -4,6 +4,8 @@ Application Configuration
 """
 from pydantic_settings import BaseSettings
 from typing import Optional
+from pydantic import field_validator
+import os
 
 
 class Settings(BaseSettings):
@@ -22,6 +24,16 @@ class Settings(BaseSettings):
     # Notification Services (Optional)
     USE_EMAIL: Optional[bool] = False
     USE_WHATSAPP_WEB: Optional[bool] = False
+    
+    @field_validator('USE_EMAIL', 'USE_WHATSAPP_WEB', mode='before')
+    @classmethod
+    def parse_bool(cls, v):
+        """המרת מחרוזות ממשתני סביבה לבוליאני"""
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, str):
+            return v.lower() in ('true', '1', 'yes', 'on')
+        return False
     
     # Email Service (Optional)
     SMTP_SERVER: Optional[str] = None
