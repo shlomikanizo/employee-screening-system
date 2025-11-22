@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     COMPANY_LAT: float = 32.0853
     COMPANY_LNG: float = 34.7818
     COMPANY_LOGO_URL: str = ""
+    COMPANY_WHATSAPP_PHONE: Optional[str] = None
     
     # Job Details
     JOB_TITLE: str = "Job Position"
@@ -68,7 +69,9 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
-        case_sensitive = True
+        env_file_encoding = 'utf-8'
+        case_sensitive = False  # Changed to False to accept lowercase env vars
+        extra = "ignore"
 
 
 # יצירת instance של ההגדרות

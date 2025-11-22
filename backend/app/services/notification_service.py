@@ -19,10 +19,17 @@ class NotificationService:
     """שירות התראות"""
     
     def __init__(self):
-        # בחירת שירות לפי הגדרות
-        self.use_email = os.getenv("USE_EMAIL", "false").lower() == "true"
-        self.use_whatsapp_web = os.getenv("USE_WHATSAPP_WEB", "false").lower() == "true"
-        self.use_whatsapp_api = os.getenv("WHATSAPP_ACCESS_TOKEN", "").startswith("EAA")  # Check if real token exists
+        # בחירת שירות לפי הגדרות (דרך settings שקורא את .env)
+        self.use_email = bool(settings.USE_EMAIL)
+        self.use_whatsapp_web = bool(settings.USE_WHATSAPP_WEB)
+        # WhatsApp Business API פעיל רק אם יש טוקן אמיתי שמתחיל ב-EAA
+        self.use_whatsapp_api = bool(settings.WHATSAPP_ACCESS_TOKEN and settings.WHATSAPP_ACCESS_TOKEN.startswith("EAA"))
+        
+        # DEBUG: הדפסת ערכי משתני סביבה
+        logger.info(f"🔍 DEBUG - USE_EMAIL: {settings.USE_EMAIL} (type: {type(settings.USE_EMAIL)})")
+        logger.info(f"🔍 DEBUG - USE_WHATSAPP_WEB: {settings.USE_WHATSAPP_WEB} (type: {type(settings.USE_WHATSAPP_WEB)})")
+        logger.info(f"🔍 DEBUG - WHATSAPP_WEB_SERVER_URL: {settings.WHATSAPP_WEB_SERVER_URL}")
+        logger.info(f"🔍 DEBUG - WHATSAPP_ACCESS_TOKEN: {'***' if settings.WHATSAPP_ACCESS_TOKEN else 'None'}")
         
         # קביעת השירות העיקרי
         if self.use_email:
@@ -191,6 +198,60 @@ class NotificationService:
                 "success": False,
                 "error": str(e)
             }
+
+    def send_submission_summary_to_company(
+        self,
+        company_phone: str,
+        candidate_name: str,
+        candidate_phone: str,
+        candidate_email: Optional[str],
+        city: Optional[str],
+        passed_screening: bool,
+    ) -> Dict[str, Any]:
+        """שליחת סיכום מלא של הטופס לחברה (למספר וואטסאפ של המגייס).
+
+        עובד עם אותו שירות נבחר (WhatsApp Web / API / Email), אבל מתמקד בהודעת ניהול.
+        """
+
+        status_text = "עבר את הסינון הראשוני ✅" if passed_screening else "לא עבר את הסינון הראשוני ❌"
+
+        message = (
+            f"טופס סינון חדש התקבל במערכת {settings.COMPANY_NAME}\n\n"
+            f"שם מועמד: {candidate_name}\n"
+            f"טלפון מועמד: {candidate_phone}\n"
+            f"אימייל: {candidate_email or 'לא צוין'}\n"
+            f"עיר: {city or 'לא צוין'}\n"
+            f"סטטוס ראשוני: {status_text}\n"
+            f"משרה: {settings.JOB_TITLE}\n"
+        )
+
+        try:
+            if self.use_whatsapp_web:
+                import asyncio
+                result = asyncio.run(self.whatsapp_web.send_message(company_phone, message))
+                logger.info(f"סיכום טופס נשלח ב-WhatsApp Web לחברה ({company_phone})")
+                return result
+            elif self.use_whatsapp_api and self.whatsapp_service:
+                result = self.whatsapp_service.send_text_message(
+                    to=company_phone,
+                    message=message
+                )
+                logger.info("סיכום טופס נשלח ב-WhatsApp API לחברה")
+                return result
+            elif self.use_email and email_service:
+                # fallback לאימייל אם מוגדר
+                result = self.email_service.send_plain_text_to_company(
+                    subject=f"טופס סינון חדש - {settings.JOB_TITLE}",
+                    body=message,
+                )
+                logger.info("סיכום טופס נשלח באימייל לחברה")
+                return result
+            else:
+                logger.info("אין שירות הודעות מוגדר עבור שליחת סיכום לחברה")
+                return {"success": True, "message": "No notification service configured for company summary"}
+        except Exception as e:
+            logger.error(f"שגיאה בשליחת סיכום לחברה: {str(e)}")
+            return {"success": False, "error": str(e)}
     
     def send_pdf_to_candidate(
         self, 
