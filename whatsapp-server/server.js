@@ -10,7 +10,8 @@ const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3001;
+// ברנדר נקבל את הפורט מ-process.env.PORT, לוקאלית נשתמש ב-3001
+const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '50mb' }));
 
@@ -258,9 +259,9 @@ app.get('/health', (req, res) => {
 
 // הפעלת השרת
 app.listen(PORT, () => {
-    console.log(`\n🚀 WhatsApp Web Server רץ על http://localhost:${PORT}`);
-    console.log(`📊 בדוק סטטוס: http://localhost:${PORT}/status`);
-    console.log(`🔍 בדיקת בריאות: http://localhost:${PORT}/health`);
+    console.log(`\n🚀 WhatsApp Web Server רץ על פורט ${PORT}`);
+    console.log(`📊 בדוק סטטוס: /status`);
+    console.log(`🔍 בדיקת בריאות: /health`);
     console.log('\n⏳ ממתין לסריקת QR code...\n');
 });
 
