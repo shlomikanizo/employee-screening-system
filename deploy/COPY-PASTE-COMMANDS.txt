@@ -1,0 +1,73 @@
+==============================================
+🚀 פקודות להעתקה מהירה - AWS Deployment
+==============================================
+
+📋 שלב 1: במחשב Windows (PowerShell)
+==============================================
+
+cd "C:\Users\User\OmegaGPT\JOB WORKER"
+tar -czf employee-screening-deploy.tar.gz backend frontend whatsapp-server deploy
+scp -i "omega-key.pem" employee-screening-deploy.tar.gz ubuntu@16.171.37.19:~/
+
+
+📋 שלב 2: התחבר לשרת
+==============================================
+
+ssh -i "omega-key.pem" ubuntu@16.171.37.19
+
+
+📋 שלב 3: בשרת AWS - הרץ סקריפט התקנה
+==============================================
+
+tar -xzf employee-screening-deploy.tar.gz
+chmod +x deploy/install-complete.sh
+
+# ⚠️ חשוב! ערוך את מספר הטלפון:
+nano deploy/install-complete.sh
+# חפש: COMPANY_WHATSAPP_PHONE=972XXXXXXXXX
+# שנה למספר שלך
+# שמור: Ctrl+O, Enter, Ctrl+X
+
+sudo ./deploy/install-complete.sh
+
+
+📋 שלב 4: צפה בקוד QR של WhatsApp
+==============================================
+
+sudo journalctl -u employee-whatsapp -f
+
+# סרוק את ה-QR Code עם WhatsApp בטלפון
+# לצאת: Ctrl+C
+
+
+==============================================
+✅ הכל עובד! גש ל:
+==============================================
+
+Frontend: http://16.171.37.19
+Backend: http://16.171.37.19:8000/docs
+WhatsApp Status: http://16.171.37.19:3001/status
+
+
+==============================================
+🔧 פקודות שימושיות
+==============================================
+
+# בדיקת סטטוס:
+sudo systemctl status employee-backend
+sudo systemctl status employee-whatsapp
+sudo systemctl status nginx
+
+# צפייה בלוגים:
+sudo tail -f /var/log/employee-screening/backend.log
+sudo tail -f /var/log/employee-screening/whatsapp.log
+
+# הפעלה מחדש:
+sudo systemctl restart employee-backend
+sudo systemctl restart employee-whatsapp
+sudo systemctl restart nginx
+
+
+==============================================
+זה הכל! המערכת עובדת אוטומטית! 🎉
+==============================================
